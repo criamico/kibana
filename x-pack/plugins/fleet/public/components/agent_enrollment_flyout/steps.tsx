@@ -14,7 +14,8 @@ import semverMinor from 'semver/functions/minor';
 import semverPatch from 'semver/functions/patch';
 
 import type { AgentPolicy } from '../../types';
-import { useKibanaVersion } from '../../hooks';
+import { useKibanaVersion, useStartServices } from '../../hooks';
+import { agentPolicyRouteService } from '../../services';
 import type { GetOneEnrollmentAPIKeyResponse } from '../../../common/types/rest_spec/enrollment_api_key';
 
 import { ManualInstructions } from '../enrollment_instructions';
@@ -27,6 +28,7 @@ import { AdvancedAgentAuthenticationSettings } from './advanced_agent_authentica
 import { SelectCreateAgentPolicy } from './agent_policy_select_create';
 
 import { ConfirmAgentEnrollment } from './confirm_agent_enrollment';
+import { ConfirmIncomingData } from './confirm_incoming_data';
 
 export const DownloadStep = (hasFleetServer: boolean) => {
   const kibanaVersion = useKibanaVersion();
@@ -273,12 +275,26 @@ export const InstallManagedAgentStep = ({
 export const InstallStandaloneAgentStep = ({
   installCommand,
   isK8s,
+  agentPolicyId,
 }: {
   installCommand: CommandsByPlatform;
   isK8s: string;
+  agentPolicyId: string;
 }) => {
+  const core = useStartServices();
   const link1 = '';
-  const link2 = '';
+  let downloadLink = '';
+
+  if (agentPolicyId) {
+    downloadLink =
+      isK8s === 'IS_KUBERNETES'
+        ? core.http.basePath.prepend(
+            `${agentPolicyRouteService.getInfoFullDownloadPath(agentPolicyId)}?kubernetes=true`
+          )
+        : core.http.basePath.prepend(
+            `${agentPolicyRouteService.getInfoFullDownloadPath(agentPolicyId)}?standalone=true`
+          );
+  }
   return {
     title: i18n.translate('xpack.fleet.agentEnrollment.stepEnrollAndRunAgentTitle', {
       defaultMessage: 'Install Elastic Agent on your host',
@@ -288,7 +304,7 @@ export const InstallStandaloneAgentStep = ({
         <EuiText>
           <FormattedMessage
             id="xpack.fleet.enrollmentInstructions.troubleshootingText"
-            defaultMessage="Select the appropriate platform and run commands to install, enroll, and start Elastic Agent. Reuse commands to set up agents on more than one host. For aarch64, see our {link1}. For additional guidance, see our {link2}."
+            defaultMessage="Select the appropriate platform and run commands to install, enroll, and start Elastic Agent. Reuse commands to set up agents on more than one host. For aarch64, see our {link1}. For additional guidance, see our {downloadLink}."
             values={{
               link1: (
                 <EuiLink target="_blank" external href={link1}>
@@ -298,8 +314,8 @@ export const InstallStandaloneAgentStep = ({
                   />
                 </EuiLink>
               ),
-              link2: (
-                <EuiLink target="_blank" external href={link2}>
+              downloadLink: (
+                <EuiLink target="_blank" external href={downloadLink}>
                   <FormattedMessage
                     id="xpack.fleet.enrollmentInstructions.installationLink"
                     defaultMessage="installation docs"
@@ -342,5 +358,14 @@ export const AgentEnrollmentConfirmationStep = ({
         troubleshootLink={troubleshootLink}
       />
     ),
+  };
+};
+
+export const IncomingDataConfirmationStep = ({ agentsIds }: { agentsIds: string[] }) => {
+  return {
+    title: i18n.translate('xpack.fleet.agentEnrollment.stepConfirmIncomingData', {
+      defaultMessage: 'Confirm incoming data',
+    }),
+    children: <ConfirmIncomingData agentsIds={agentsIds} />,
   };
 };

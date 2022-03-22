@@ -37,6 +37,7 @@ import {
   AgentEnrollmentKeySelectionStep,
   AgentEnrollmentConfirmationStep,
   InstallManagedAgentStep,
+  IncomingDataConfirmationStep,
 } from './steps';
 import type { InstructionProps } from './types';
 
@@ -161,6 +162,13 @@ export const ManagedInstructions = React.memo<InstructionProps>(
           troubleshootLink: link,
         })
       );
+      if (policyId) {
+        baseSteps.push(
+          IncomingDataConfirmationStep({
+            agentsIds: [policyId],
+          })
+        );
+      }
 
       return baseSteps;
     }, [
