@@ -44,7 +44,16 @@ import {
 import type { InstructionProps } from './types';
 
 export const StandaloneInstructions = React.memo<InstructionProps>(
-  ({ agentPolicy, setSelectedPolicyId, agentPolicies, refreshAgentPolicies, mode, setMode }) => {
+  ({
+    agentPolicy,
+    policyId,
+    setSelectedPolicyId,
+    agentPolicies,
+    refreshAgentPolicies,
+    mode,
+    setMode,
+    onClickViewAgents,
+  }) => {
     const core = useStartServices();
     const { notifications } = core;
 
@@ -85,6 +94,7 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
     const { docLinks } = useStartServices();
     const link = docLinks.links.fleet.troubleshooting;
     console.log('STANDALONE agentPolicy', agentPolicy);
+    console.log('STANDALONE policyId', policyId);
 
     useEffect(() => {
       async function checkifK8s() {
@@ -263,9 +273,9 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
         ),
       },
       AgentEnrollmentConfirmationStep({
-        policyId: agentPolicy?.id,
+        policyId,
         troubleshootLink: link,
-        // onClickViewAgents: () => {},
+        onClickViewAgents,
       }),
     ].filter(Boolean) as EuiContainedStepProps[];
 

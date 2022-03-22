@@ -66,6 +66,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
   ({
     agentPolicy,
     agentPolicies,
+    policyId,
     setSelectedPolicyId,
     isFleetServerPolicySelected,
     settings,
@@ -73,6 +74,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     isLoadingAgentPolicies,
     mode,
     setMode,
+    onClickViewAgents,
   }) => {
     const fleetStatus = useFleetStatus();
     const { docLinks } = useStartServices();
@@ -121,6 +123,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     const steps = useMemo(() => {
       const fleetServerHosts = settings?.fleet_server_hosts || [];
       console.log('MANAGED agentPolicy', agentPolicy);
+      console.log('MANAGED policyId,', policyId,);
       const baseSteps: EuiContainedStepProps[] = [
         !agentPolicy
           ? AgentPolicySelectionStep({
@@ -149,8 +152,8 @@ export const ManagedInstructions = React.memo<InstructionProps>(
       }
       baseSteps.push(
         AgentEnrollmentConfirmationStep({
-          policyId: agentPolicy?.id,
-          // onClickViewAgents: () => {},
+          policyId,
+          onClickViewAgents,
           troubleshootLink: link,
         })
       );
@@ -159,6 +162,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     }, [
       agentPolicy,
       selectedApiKeyId,
+      policyId,
       setSelectedPolicyId,
       setSelectedAPIKeyId,
       agentPolicies,
@@ -170,6 +174,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
       mode,
       setMode,
       link,
+      onClickViewAgents,
     ]);
 
     if (fleetStatus.isReady && settings?.fleet_server_hosts.length === 0) {

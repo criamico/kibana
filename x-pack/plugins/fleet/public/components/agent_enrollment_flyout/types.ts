@@ -23,6 +23,7 @@ export interface BaseProps {
 
   settings?: Settings;
 
+  policyId?: string;
   setSelectedPolicyId?: (policyId?: string) => void;
 
   isFleetServerPolicySelected?: boolean;
@@ -34,4 +35,5 @@ export interface InstructionProps extends BaseProps {
   isLoadingAgentPolicies?: boolean;
   mode: FlyoutMode;
   setMode: (v: FlyoutMode) => void;
+  onClickViewAgents: () => void;
 }

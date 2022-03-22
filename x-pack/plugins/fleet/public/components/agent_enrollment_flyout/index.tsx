@@ -128,6 +128,7 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
         ) : mode === 'managed' ? (
           <ManagedInstructions
             settings={settings.data?.item}
+            policyId={policyId}
             setSelectedPolicyId={setSelectedPolicyId}
             agentPolicy={agentPolicy}
             agentPolicies={agentPolicies}
@@ -137,15 +138,18 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
             isLoadingAgentPolicies={isLoadingAgentPolicies}
             mode={mode}
             setMode={setMode}
+            onClickViewAgents={onClose}
           />
         ) : (
           <StandaloneInstructions
             agentPolicy={agentPolicy}
+            policyId={policyId}
             setSelectedPolicyId={setSelectedPolicyId}
             agentPolicies={agentPolicies}
             refreshAgentPolicies={refreshAgentPolicies}
             mode={mode}
             setMode={setMode}
+            onClickViewAgents={onClose}
           />
         )}
       </EuiFlyoutBody>
