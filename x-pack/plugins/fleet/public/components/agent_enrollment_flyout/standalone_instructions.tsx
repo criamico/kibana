@@ -34,12 +34,11 @@ import type { PackagePolicy } from '../../../common';
 
 import { FLEET_KUBERNETES_PACKAGE } from '../../../common';
 
-import { PlatformSelector } from '../enrollment_instructions/manual/platform_selector';
-
 import {
   AgentPolicySelectionStep,
   InstallationModeSelectionStep,
   AgentEnrollmentConfirmationStep,
+  InstallStandaloneAgentStep,
 } from './steps';
 import type { InstructionProps } from './types';
 
@@ -90,6 +89,14 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
       isK8s === 'IS_KUBERNETES' ? KUBERNETES_RUN_INSTRUCTIONS : STANDALONE_RUN_INSTRUCTIONS_MAC;
     const windowsCommand =
       isK8s === 'IS_KUBERNETES' ? KUBERNETES_RUN_INSTRUCTIONS : STANDALONE_RUN_INSTRUCTIONS_WINDOWS;
+
+    const installCommand: CommandsByPlatform = {
+      linux: linuxCommand,
+      mac: macCommand,
+      windows: windowsCommand,
+      deb: linuxDebCommand,
+      rpm: linuxRpmCommand,
+    };
 
     const { docLinks } = useStartServices();
     const link = docLinks.links.fleet.troubleshooting;
@@ -256,22 +263,7 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
           </>
         ),
       },
-      {
-        title: i18n.translate('xpack.fleet.agentEnrollment.stepRunAgentTitle', {
-          defaultMessage: 'Start the agent',
-        }),
-        children: (
-          <PlatformSelector
-            linuxCommand={linuxCommand}
-            macCommand={macCommand}
-            windowsCommand={windowsCommand}
-            linuxDebCommand={linuxDebCommand}
-            linuxRpmCommand={linuxRpmCommand}
-            troubleshootLink={docLinks.links.fleet.troubleshooting}
-            isK8s={isK8s === 'IS_KUBERNETES'}
-          />
-        ),
-      },
+      InstallStandaloneAgentStep({ installCommand, isK8s }),
       AgentEnrollmentConfirmationStep({
         policyId,
         troubleshootLink: link,

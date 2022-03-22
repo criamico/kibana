@@ -20,7 +20,6 @@ interface Props {
   windowsCommand: string;
   linuxDebCommand: string;
   linuxRpmCommand: string;
-  troubleshootLink: string;
   isK8s: boolean;
 }
 

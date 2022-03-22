@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { EuiText, EuiButton, EuiSpacer, EuiRadioGroup } from '@elastic/eui';
+import { EuiText, EuiButton, EuiSpacer, EuiRadioGroup, EuiLink } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
 import { i18n } from '@kbn/i18n';
 import semverMajor from 'semver/functions/major';
@@ -15,6 +15,11 @@ import semverPatch from 'semver/functions/patch';
 
 import type { AgentPolicy } from '../../types';
 import { useKibanaVersion } from '../../hooks';
+import type { GetOneEnrollmentAPIKeyResponse } from '../../../common/types/rest_spec/enrollment_api_key';
+
+import { ManualInstructions } from '../enrollment_instructions';
+import type { CommandsByPlatform } from '../../applications/fleet/sections/agents/agent_requirements_page/components/install_command_utils';
+import { PlatformSelector } from '../enrollment_instructions/manual/platform_selector';
 
 import type { FlyoutMode } from './types';
 
@@ -242,6 +247,77 @@ export const InstallationModeSelectionStep = ({
         onChange={onChangeCallback}
         name={`radio group ${radioSuffix}`}
       />
+    ),
+  };
+};
+
+export const InstallManagedAgentStep = ({
+  selectedApiKeyId,
+  apiKeyData,
+  fleetServerHosts,
+}: {
+  fleetServerHosts: string[];
+  selectedApiKeyId?: string;
+  apiKeyData?: GetOneEnrollmentAPIKeyResponse | null;
+}) => {
+  return {
+    title: i18n.translate('xpack.fleet.agentEnrollment.stepEnrollAndRunAgentTitle', {
+      defaultMessage: 'Install Elastic Agent on your host',
+    }),
+    children: selectedApiKeyId && apiKeyData && (
+      <ManualInstructions apiKey={apiKeyData.item} fleetServerHosts={fleetServerHosts} />
+    ),
+  };
+};
+
+export const InstallStandaloneAgentStep = ({
+  installCommand,
+  isK8s,
+}: {
+  installCommand: CommandsByPlatform;
+  isK8s: string;
+}) => {
+  const link1 = '';
+  const link2 = '';
+  return {
+    title: i18n.translate('xpack.fleet.agentEnrollment.stepEnrollAndRunAgentTitle', {
+      defaultMessage: 'Install Elastic Agent on your host',
+    }),
+    children: (
+      <>
+        <EuiText>
+          <FormattedMessage
+            id="xpack.fleet.enrollmentInstructions.troubleshootingText"
+            defaultMessage="Select the appropriate platform and run commands to install, enroll, and start Elastic Agent. Reuse commands to set up agents on more than one host. For aarch64, see our {link1}. For additional guidance, see our {link2}."
+            values={{
+              link1: (
+                <EuiLink target="_blank" external href={link1}>
+                  <FormattedMessage
+                    id="xpack.fleet.enrollmentInstructions.downloadLink"
+                    defaultMessage="downloads page"
+                  />
+                </EuiLink>
+              ),
+              link2: (
+                <EuiLink target="_blank" external href={link2}>
+                  <FormattedMessage
+                    id="xpack.fleet.enrollmentInstructions.installationLink"
+                    defaultMessage="installation docs"
+                  />
+                </EuiLink>
+              ),
+            }}
+          />
+        </EuiText>
+        <PlatformSelector
+          linuxCommand={installCommand.linux}
+          macCommand={installCommand.mac}
+          windowsCommand={installCommand.windows}
+          linuxDebCommand={installCommand.deb}
+          linuxRpmCommand={installCommand.rpm}
+          isK8s={isK8s === 'IS_KUBERNETES'}
+        />
+      </>
     ),
   };
 };

@@ -8,12 +8,16 @@
 import React, { useState, useMemo } from 'react';
 import { EuiSteps, EuiLink, EuiText, EuiSpacer } from '@elastic/eui';
 import type { EuiContainedStepProps } from '@elastic/eui/src/components/steps/steps';
-import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
 
-import { useGetOneEnrollmentAPIKey, useLink, useFleetStatus, useGetAgents, useStartServices, } from '../../hooks';
+import {
+  useGetOneEnrollmentAPIKey,
+  useLink,
+  useFleetStatus,
+  useGetAgents,
+  useStartServices,
+} from '../../hooks';
 
-import { ManualInstructions } from '../../components/enrollment_instructions';
 import {
   deploymentModeStep,
   ServiceTokenStep,
@@ -32,6 +36,7 @@ import {
   AgentPolicySelectionStep,
   AgentEnrollmentKeySelectionStep,
   AgentEnrollmentConfirmationStep,
+  InstallManagedAgentStep,
 } from './steps';
 import type { InstructionProps } from './types';
 
@@ -123,7 +128,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     const steps = useMemo(() => {
       const fleetServerHosts = settings?.fleet_server_hosts || [];
       console.log('MANAGED agentPolicy', agentPolicy);
-      console.log('MANAGED policyId,', policyId,);
+      console.log('MANAGED policyId,', policyId);
       const baseSteps: EuiContainedStepProps[] = [
         !agentPolicy
           ? AgentPolicySelectionStep({
@@ -141,14 +146,13 @@ export const ManagedInstructions = React.memo<InstructionProps>(
       if (isFleetServerPolicySelected) {
         baseSteps.push(...fleetServerSteps);
       } else {
-        baseSteps.push({
-          title: i18n.translate('xpack.fleet.agentEnrollment.stepEnrollAndRunAgentTitle', {
-            defaultMessage: 'Enroll and start the Elastic Agent',
-          }),
-          children: selectedApiKeyId && apiKey.data && (
-            <ManualInstructions apiKey={apiKey.data.item} fleetServerHosts={fleetServerHosts} />
-          ),
-        });
+        baseSteps.push(
+          InstallManagedAgentStep({
+            apiKeyData: apiKey?.data,
+            selectedApiKeyId,
+            fleetServerHosts,
+          })
+        );
       }
       baseSteps.push(
         AgentEnrollmentConfirmationStep({
