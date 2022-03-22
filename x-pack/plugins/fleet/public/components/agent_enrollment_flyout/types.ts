@@ -27,9 +27,11 @@ export interface BaseProps {
 
   isFleetServerPolicySelected?: boolean;
 }
-
+export type FlyoutMode = 'managed' | 'standalone';
 export interface InstructionProps extends BaseProps {
   agentPolicies: AgentPolicy[];
   refreshAgentPolicies: () => void;
   isLoadingAgentPolicies?: boolean;
+  mode: FlyoutMode;
+  setMode: (v: FlyoutMode) => void;
 }

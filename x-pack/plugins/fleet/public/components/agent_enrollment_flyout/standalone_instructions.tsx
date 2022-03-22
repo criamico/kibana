@@ -38,16 +38,15 @@ import { FLEET_KUBERNETES_PACKAGE } from '../../../common';
 
 import { PlatformSelector } from '../enrollment_instructions/manual/platform_selector';
 
-import { DownloadStep, AgentPolicySelectionStep } from './steps';
+import { AgentPolicySelectionStep, InstallationModeSelectionStep } from './steps';
 import type { InstructionProps } from './types';
 
 export const StandaloneInstructions = React.memo<InstructionProps>(
-  ({ agentPolicy, agentPolicies, refreshAgentPolicies }) => {
+  ({ agentPolicy, setSelectedPolicyId, agentPolicies, refreshAgentPolicies, mode, setMode }) => {
     const { getHref } = useLink();
     const core = useStartServices();
     const { notifications } = core;
 
-    const [selectedPolicyId, setSelectedPolicyId] = useState<string | undefined>(agentPolicy?.id);
     const [fullAgentPolicy, setFullAgentPolicy] = useState<any | undefined>();
     const [isK8s, setIsK8s] = useState<'IS_LOADING' | 'IS_KUBERNETES' | 'IS_NOT_KUBERNETES'>(
       'IS_LOADING'
@@ -83,13 +82,14 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
       isK8s === 'IS_KUBERNETES' ? KUBERNETES_RUN_INSTRUCTIONS : STANDALONE_RUN_INSTRUCTIONS_WINDOWS;
 
     const { docLinks } = useStartServices();
+    console.log('STANDALONE agentPolicy', agentPolicy);
 
     useEffect(() => {
       async function checkifK8s() {
-        if (!selectedPolicyId) {
+        if (!agentPolicy?.id) {
           return;
         }
-        const agentPolicyRequest = await sendGetOneAgentPolicy(selectedPolicyId);
+        const agentPolicyRequest = await sendGetOneAgentPolicy(agentPolicy?.id);
         const agentPol = agentPolicyRequest.data ? agentPolicyRequest.data.item : null;
 
         if (!agentPol) {
@@ -104,19 +104,19 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
         );
       }
       checkifK8s();
-    }, [selectedPolicyId, notifications.toasts]);
+    }, [agentPolicy, notifications.toasts]);
 
     useEffect(() => {
       async function fetchFullPolicy() {
         try {
-          if (!selectedPolicyId) {
+          if (!agentPolicy?.id) {
             return;
           }
           let query = { standalone: true, kubernetes: false };
           if (isK8s === 'IS_KUBERNETES') {
             query = { standalone: true, kubernetes: true };
           }
-          const res = await sendGetOneAgentPolicyFull(selectedPolicyId, query);
+          const res = await sendGetOneAgentPolicyFull(agentPolicy?.id, query);
           if (res.error) {
             throw res.error;
           }
@@ -134,7 +134,7 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
       if (isK8s !== 'IS_LOADING') {
         fetchFullPolicy();
       }
-    }, [selectedPolicyId, notifications.toasts, isK8s, core.http.basePath]);
+    }, [agentPolicy?.id, notifications.toasts, isK8s, core.http.basePath]);
 
     useEffect(() => {
       if (isK8s === 'IS_KUBERNETES') {
@@ -174,14 +174,14 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
       );
 
     let downloadLink = '';
-    if (selectedPolicyId) {
+    if (agentPolicy?.id) {
       downloadLink =
         isK8s === 'IS_KUBERNETES'
           ? core.http.basePath.prepend(
-              `${agentPolicyRouteService.getInfoFullDownloadPath(selectedPolicyId)}?kubernetes=true`
+              `${agentPolicyRouteService.getInfoFullDownloadPath(agentPolicy?.id)}?kubernetes=true`
             )
           : core.http.basePath.prepend(
-              `${agentPolicyRouteService.getInfoFullDownloadPath(selectedPolicyId)}?standalone=true`
+              `${agentPolicyRouteService.getInfoFullDownloadPath(agentPolicy?.id)}?standalone=true`
             );
     }
 
@@ -207,7 +207,7 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
             refreshAgentPolicies,
           })
         : undefined,
-      DownloadStep(false),
+      InstallationModeSelectionStep({ mode, setMode }),
       {
         title: i18n.translate('xpack.fleet.agentEnrollment.stepConfigureAgentTitle', {
           defaultMessage: 'Configure the agent',

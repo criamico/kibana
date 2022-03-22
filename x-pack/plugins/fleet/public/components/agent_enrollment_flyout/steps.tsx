@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { EuiText, EuiButton, EuiSpacer } from '@elastic/eui';
+import { EuiText, EuiButton, EuiSpacer, EuiRadioGroup } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
 import { i18n } from '@kbn/i18n';
 import semverMajor from 'semver/functions/major';
@@ -15,6 +15,8 @@ import semverPatch from 'semver/functions/patch';
 
 import type { AgentPolicy } from '../../types';
 import { useKibanaVersion } from '../../hooks';
+
+import type { FlyoutMode } from './types';
 
 import { AdvancedAgentAuthenticationSettings } from './advanced_agent_authentication_settings';
 import { SelectCreateAgentPolicy } from './agent_policy_select_create';
@@ -90,26 +92,29 @@ export const AgentPolicySelectionStep = ({
 }) => {
   // storing the created agent policy id as the child component is being recreated
   const [policyId, setPolicyId] = useState<string | undefined>(undefined);
+  // const findPolicyById = (policies: AgentPolicy[], id: string) => policies.find((p) => p.id === id);
+
   const regularAgentPolicies = useMemo(() => {
     return agentPolicies.filter(
       (policy) =>
         policy && !policy.is_managed && (!excludeFleetServer || !policy.is_default_fleet_server)
     );
   }, [agentPolicies, excludeFleetServer]);
-
   const onAgentPolicyChange = useCallback(
     async (key?: string, policy?: AgentPolicy) => {
       if (policy) {
         refreshAgentPolicies();
       }
       if (setSelectedPolicyId) {
-        setSelectedPolicyId(key);
-        setPolicyId(key);
+        // const selectedPolicy = findPolicyById(agentPolicies, key);
+        // setSelectedPolicy(selectedPolicy);
+        // console.log('2', key, selectedPolicy);
       }
+      setSelectedPolicyId(key);
+      setPolicyId(key);
     },
     [setSelectedPolicyId, refreshAgentPolicies]
   );
-
   return {
     title: i18n.translate('xpack.fleet.agentEnrollment.stepChooseAgentPolicyTitle', {
       defaultMessage: 'What type of host are you adding?',
@@ -162,6 +167,79 @@ export const AgentEnrollmentKeySelectionStep = ({
           onKeyChange={setSelectedAPIKeyId}
         />
       </>
+    ),
+  };
+};
+
+export const InstallationModeSelectionStep = ({
+  mode,
+  setMode,
+}: {
+  mode: FlyoutMode;
+  setMode: (v: FlyoutMode) => void;
+}) => {
+  // radio id has to be unique so that the component works even if appears twice in DOM
+  const radioSuffix = useMemo(() => Date.now(), []);
+
+  const onChangeCallback = useCallback(
+    (v: string) => {
+      const value = v.split('_')[0];
+      if (value === 'managed' || value === 'standalone') {
+        setMode(value);
+      }
+    },
+    [setMode]
+  );
+  return {
+    title: i18n.translate('xpack.fleet.agentEnrollment.stepInstallType', {
+      defaultMessage: 'Enroll in Fleet?',
+    }),
+    children: (
+      <EuiRadioGroup
+        options={[
+          {
+            id: `managed_${radioSuffix}`,
+            label: (
+              <FormattedMessage
+                id="xpack.fleet.agentFlyout.managedRadioOption"
+                defaultMessage="{managed} – Enroll in Elastic Agent in Fleet to automatically deploy updates and centrally manage the agent."
+                values={{
+                  managed: (
+                    <strong>
+                      <FormattedMessage
+                        id="xpack.fleet.agentFlyout.managedMessage"
+                        defaultMessage="Enroll in Fleet (recommended)"
+                      />
+                    </strong>
+                  ),
+                }}
+              />
+            ),
+          },
+          {
+            id: `standalone_${radioSuffix}`,
+            label: (
+              <FormattedMessage
+                id="xpack.fleet.agentFlyout.standaloneRadioOption"
+                defaultMessage="{standaloneMessage} – Run an Elastic Agent standalone to configure and update the agent manually on the host where the agent is installed."
+                values={{
+                  standaloneMessage: (
+                    <strong>
+                      <FormattedMessage
+                        id="xpack.fleet.agentFlyout.standaloneMessage"
+                        defaultMessage="Run standalone"
+                      />
+                    </strong>
+                  ),
+                }}
+              />
+            ),
+          },
+        ]}
+        idSelected={`${mode}_${radioSuffix}`}
+        onChange={onChangeCallback}
+        name={`radio group ${radioSuffix}`}
+      />
     ),
   };
 };

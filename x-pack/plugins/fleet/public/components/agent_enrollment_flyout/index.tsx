@@ -17,8 +17,6 @@ import {
   EuiFlexItem,
   EuiButtonEmpty,
   EuiFlyoutFooter,
-  EuiTab,
-  EuiTabs,
 } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
 
@@ -64,6 +62,7 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
 
   const fleetStatus = useFleetStatus();
   const [policyId, setSelectedPolicyId] = useState(agentPolicy?.id);
+  console.log('agentPolicy', policyId);
   const [isFleetServerPolicySelected, setIsFleetServerPolicySelected] = useState<boolean>(false);
 
   const {
@@ -113,31 +112,7 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
             defaultMessage="Add Elastic Agents to your hosts to collect data and send it to the Elastic Stack."
           />
         </EuiText>
-        <EuiSpacer size="l" />
-        <EuiTabs style={{ marginBottom: '-25px' }}>
-          <EuiTab
-            data-test-subj="managedTab"
-            isSelected={mode === 'managed'}
-            onClick={() => setMode('managed')}
-          >
-            <FormattedMessage
-              id="xpack.fleet.agentEnrollment.enrollFleetTabLabel"
-              defaultMessage="Enroll in Fleet"
-            />
-          </EuiTab>
-          <EuiTab
-            data-test-subj="standaloneTab"
-            isSelected={mode === 'standalone'}
-            onClick={() => setMode('standalone')}
-          >
-            <FormattedMessage
-              id="xpack.fleet.agentEnrollment.enrollStandaloneTabLabel"
-              defaultMessage="Run standalone"
-            />
-          </EuiTab>
-        </EuiTabs>
       </EuiFlyoutHeader>
-
       <EuiFlyoutBody
         banner={
           fleetStatus.isReady &&
@@ -160,12 +135,17 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
             isFleetServerPolicySelected={isFleetServerPolicySelected}
             refreshAgentPolicies={refreshAgentPolicies}
             isLoadingAgentPolicies={isLoadingAgentPolicies}
+            mode={mode}
+            setMode={setMode}
           />
         ) : (
           <StandaloneInstructions
             agentPolicy={agentPolicy}
+            setSelectedPolicyId={setSelectedPolicyId}
             agentPolicies={agentPolicies}
             refreshAgentPolicies={refreshAgentPolicies}
+            mode={mode}
+            setMode={setMode}
           />
         )}
       </EuiFlyoutBody>

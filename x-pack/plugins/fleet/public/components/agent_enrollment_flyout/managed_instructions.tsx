@@ -27,7 +27,11 @@ import { policyHasFleetServer } from '../../applications/fleet/sections/agents/s
 
 import { FLEET_SERVER_PACKAGE } from '../../constants';
 
-import { DownloadStep, AgentPolicySelectionStep, AgentEnrollmentKeySelectionStep } from './steps';
+import {
+  InstallationModeSelectionStep,
+  AgentPolicySelectionStep,
+  AgentEnrollmentKeySelectionStep,
+} from './steps';
 import type { InstructionProps } from './types';
 
 const DefaultMissingRequirements = () => {
@@ -61,12 +65,13 @@ export const ManagedInstructions = React.memo<InstructionProps>(
   ({
     agentPolicy,
     agentPolicies,
-    viewDataStep,
     setSelectedPolicyId,
     isFleetServerPolicySelected,
     settings,
     refreshAgentPolicies,
     isLoadingAgentPolicies,
+    mode,
+    setMode,
   }) => {
     const fleetStatus = useFleetStatus();
 
@@ -113,6 +118,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
 
     const steps = useMemo(() => {
       const fleetServerHosts = settings?.fleet_server_hosts || [];
+      console.log('MANAGED agentPolicy', agentPolicy);
       const baseSteps: EuiContainedStepProps[] = [
         !agentPolicy
           ? AgentPolicySelectionStep({
@@ -123,8 +129,10 @@ export const ManagedInstructions = React.memo<InstructionProps>(
               refreshAgentPolicies,
             })
           : AgentEnrollmentKeySelectionStep({ agentPolicy, selectedApiKeyId, setSelectedAPIKeyId }),
-        DownloadStep(isFleetServerPolicySelected || false),
+
+        InstallationModeSelectionStep({ mode, setMode }),
       ];
+
       if (isFleetServerPolicySelected) {
         baseSteps.push(...fleetServerSteps);
       } else {
@@ -136,10 +144,6 @@ export const ManagedInstructions = React.memo<InstructionProps>(
             <ManualInstructions apiKey={apiKey.data.item} fleetServerHosts={fleetServerHosts} />
           ),
         });
-      }
-
-      if (viewDataStep) {
-        baseSteps.push({ 'data-test-subj': 'view-data-step', ...viewDataStep });
       }
 
       return baseSteps;
@@ -154,7 +158,8 @@ export const ManagedInstructions = React.memo<InstructionProps>(
       fleetServerSteps,
       isFleetServerPolicySelected,
       settings?.fleet_server_hosts,
-      viewDataStep,
+      mode,
+      setMode,
     ]);
 
     if (fleetStatus.isReady && settings?.fleet_server_hosts.length === 0) {
