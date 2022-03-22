@@ -16,7 +16,6 @@ import {
   EuiFlexGroup,
   EuiCodeBlock,
   EuiCopy,
-  EuiLink,
 } from '@elastic/eui';
 import type { EuiContainedStepProps } from '@elastic/eui/src/components/steps/steps';
 import { i18n } from '@kbn/i18n';
@@ -25,7 +24,6 @@ import { safeDump } from 'js-yaml';
 
 import {
   useStartServices,
-  useLink,
   sendGetOneAgentPolicyFull,
   sendGetOneAgentPolicy,
   useKibanaVersion,
@@ -38,12 +36,15 @@ import { FLEET_KUBERNETES_PACKAGE } from '../../../common';
 
 import { PlatformSelector } from '../enrollment_instructions/manual/platform_selector';
 
-import { AgentPolicySelectionStep, InstallationModeSelectionStep } from './steps';
+import {
+  AgentPolicySelectionStep,
+  InstallationModeSelectionStep,
+  AgentEnrollmentConfirmationStep,
+} from './steps';
 import type { InstructionProps } from './types';
 
 export const StandaloneInstructions = React.memo<InstructionProps>(
   ({ agentPolicy, setSelectedPolicyId, agentPolicies, refreshAgentPolicies, mode, setMode }) => {
-    const { getHref } = useLink();
     const core = useStartServices();
     const { notifications } = core;
 
@@ -82,6 +83,7 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
       isK8s === 'IS_KUBERNETES' ? KUBERNETES_RUN_INSTRUCTIONS : STANDALONE_RUN_INSTRUCTIONS_WINDOWS;
 
     const { docLinks } = useStartServices();
+    const link = docLinks.links.fleet.troubleshooting;
     console.log('STANDALONE agentPolicy', agentPolicy);
 
     useEffect(() => {
@@ -260,31 +262,11 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
           />
         ),
       },
-      {
-        title: i18n.translate('xpack.fleet.agentEnrollment.stepCheckForDataTitle', {
-          defaultMessage: 'Check for data',
-        }),
-        children: (
-          <>
-            <EuiText>
-              <FormattedMessage
-                id="xpack.fleet.agentEnrollment.stepCheckForDataDescription"
-                defaultMessage="The agent should begin sending data. Go to {link} to view your data."
-                values={{
-                  link: (
-                    <EuiLink href={getHref('data_streams')}>
-                      <FormattedMessage
-                        id="xpack.fleet.agentEnrollment.goToDataStreamsLink"
-                        defaultMessage="data streams"
-                      />
-                    </EuiLink>
-                  ),
-                }}
-              />
-            </EuiText>
-          </>
-        ),
-      },
+      AgentEnrollmentConfirmationStep({
+        policyId: agentPolicy?.id,
+        troubleshootLink: link,
+        // onClickViewAgents: () => {},
+      }),
     ].filter(Boolean) as EuiContainedStepProps[];
 
     return (

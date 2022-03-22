@@ -11,7 +11,7 @@ import type { EuiContainedStepProps } from '@elastic/eui/src/components/steps/st
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
 
-import { useGetOneEnrollmentAPIKey, useLink, useFleetStatus, useGetAgents } from '../../hooks';
+import { useGetOneEnrollmentAPIKey, useLink, useFleetStatus, useGetAgents, useStartServices, } from '../../hooks';
 
 import { ManualInstructions } from '../../components/enrollment_instructions';
 import {
@@ -31,6 +31,7 @@ import {
   InstallationModeSelectionStep,
   AgentPolicySelectionStep,
   AgentEnrollmentKeySelectionStep,
+  AgentEnrollmentConfirmationStep,
 } from './steps';
 import type { InstructionProps } from './types';
 
@@ -74,7 +75,8 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     setMode,
   }) => {
     const fleetStatus = useFleetStatus();
-
+    const { docLinks } = useStartServices();
+    const link = docLinks.links.fleet.troubleshooting;
     const [selectedApiKeyId, setSelectedAPIKeyId] = useState<string | undefined>();
 
     const apiKey = useGetOneEnrollmentAPIKey(selectedApiKeyId);
@@ -145,6 +147,13 @@ export const ManagedInstructions = React.memo<InstructionProps>(
           ),
         });
       }
+      baseSteps.push(
+        AgentEnrollmentConfirmationStep({
+          policyId: agentPolicy?.id,
+          // onClickViewAgents: () => {},
+          troubleshootLink: link,
+        })
+      );
 
       return baseSteps;
     }, [
@@ -160,6 +169,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
       settings?.fleet_server_hosts,
       mode,
       setMode,
+      link,
     ]);
 
     if (fleetStatus.isReady && settings?.fleet_server_hosts.length === 0) {

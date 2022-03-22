@@ -6,19 +6,22 @@
  */
 
 import React from 'react';
-import { EuiCallOut, EuiButton } from '@elastic/eui';
+import { EuiCallOut, EuiButton, EuiText, EuiLink } from '@elastic/eui';
+import { FormattedMessage } from '@kbn/i18n-react';
 import { i18n } from '@kbn/i18n';
 
 import { useGetAgentStatus } from '../../hooks';
 import { AGENTS_PREFIX } from '../../constants';
 interface Props {
-  policyId: string;
-  onClickViewAgents: () => void;
+  policyId?: string;
+  onClickViewAgents?: () => void;
+  troubleshootLink: string;
 }
 
 export const ConfirmAgentEnrollment: React.FunctionComponent<Props> = ({
   policyId,
   onClickViewAgents,
+  troubleshootLink,
 }) => {
   // Check the agents enrolled in the last 10 minutes
   const enrolledAt = 'now-10m';
@@ -26,8 +29,25 @@ export const ConfirmAgentEnrollment: React.FunctionComponent<Props> = ({
   const agentStatusRequest = useGetAgentStatus({ kuery, policyId });
   const agentsCount = agentStatusRequest.data?.results?.total;
 
-  if (!agentsCount) {
-    return null;
+  if (!policyId || !agentsCount) {
+    return (
+      <EuiText>
+        <FormattedMessage
+          id="xpack.fleet.enrollmentInstructions.troubleshootingText"
+          defaultMessage="If you are having trouble connecting, see our {link}."
+          values={{
+            link: (
+              <EuiLink target="_blank" external href={troubleshootLink}>
+                <FormattedMessage
+                  id="xpack.fleet.enrollmentInstructions.troubleshootingLink"
+                  defaultMessage="troubleshooting guide"
+                />
+              </EuiLink>
+            ),
+          }}
+        />
+      </EuiText>
+    );
   }
 
   return (

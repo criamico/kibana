@@ -21,6 +21,8 @@ import type { FlyoutMode } from './types';
 import { AdvancedAgentAuthenticationSettings } from './advanced_agent_authentication_settings';
 import { SelectCreateAgentPolicy } from './agent_policy_select_create';
 
+import { ConfirmAgentEnrollment } from './confirm_agent_enrollment';
+
 export const DownloadStep = (hasFleetServer: boolean) => {
   const kibanaVersion = useKibanaVersion();
   const kibanaVersionURLString = useMemo(
@@ -239,6 +241,29 @@ export const InstallationModeSelectionStep = ({
         idSelected={`${mode}_${radioSuffix}`}
         onChange={onChangeCallback}
         name={`radio group ${radioSuffix}`}
+      />
+    ),
+  };
+};
+
+export const AgentEnrollmentConfirmationStep = ({
+  policyId,
+  onClickViewAgents,
+  troubleshootLink,
+}: {
+  policyId?: string;
+  onClickViewAgents: () => void;
+  troubleshootLink: string;
+}) => {
+  return {
+    title: i18n.translate('xpack.fleet.agentEnrollment.stepAgentEnrollmentConfirmation', {
+      defaultMessage: 'Confirm agent Enrollment',
+    }),
+    children: (
+      <ConfirmAgentEnrollment
+        policyId={policyId}
+        onClickViewAgents={onClickViewAgents}
+        troubleshootLink={troubleshootLink}
       />
     ),
   };
