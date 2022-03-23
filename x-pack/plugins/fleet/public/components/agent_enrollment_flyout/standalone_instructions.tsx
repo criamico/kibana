@@ -206,17 +206,6 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
         selectedPolicyId: agentPolicy?.id,
         downloadLink,
       }),
-      AgentEnrollmentConfirmationStep({
-        selectedPolicyId: agentPolicy?.id,
-        troubleshootLink: link,
-        onClickViewAgents,
-        agentCount: 0,
-      }),
-      agentPolicy
-        ? IncomingDataConfirmationStep({
-            agentsIds: [agentPolicy.id],
-          })
-        : undefined,
     ].filter(Boolean) as EuiContainedStepProps[];
 
     return (
