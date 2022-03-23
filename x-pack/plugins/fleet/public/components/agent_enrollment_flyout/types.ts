@@ -23,8 +23,8 @@ export interface BaseProps {
 
   settings?: Settings;
 
-  selectedPolicyId?: string;
-  setSelectedPolicyId?: (policyId?: string) => void;
+  selectedPolicy?: AgentPolicy;
+  setSelectedPolicy?: (policyId?: AgentPolicy) => void;
 
   isFleetServerPolicySelected?: boolean;
 }

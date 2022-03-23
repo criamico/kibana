@@ -88,23 +88,24 @@ export const DownloadStep = (hasFleetServer: boolean) => {
 
 export const AgentPolicySelectionStep = ({
   agentPolicies,
-  selectedPolicyId,
-  setSelectedPolicyId,
+  selectedPolicy,
+  setSelectedPolicy,
   selectedApiKeyId,
   setSelectedAPIKeyId,
   excludeFleetServer,
   refreshAgentPolicies,
 }: {
   agentPolicies: AgentPolicy[];
-  selectedPolicyId?: string;
-  setSelectedPolicyId?: (policyId?: string) => void;
+  selectedPolicy?: AgentPolicy;
+  setSelectedPolicy?: (agentPolicy?: AgentPolicy) => void;
   selectedApiKeyId?: string;
   setSelectedAPIKeyId?: (key?: string) => void;
   excludeFleetServer?: boolean;
   refreshAgentPolicies: () => void;
 }) => {
   // storing the created agent policy id as the child component is being recreated
-  const [policyId, setPolicyId] = useState<string | undefined>(selectedPolicyId);
+  const [policyId, setPolicyId] = useState<string | undefined>(selectedPolicy?.id);
+  const findPolicyById = (policies: AgentPolicy[], id: string) => policies.find((p) => p.id === id);
 
   const regularAgentPolicies = useMemo(() => {
     return agentPolicies.filter(
@@ -118,12 +119,13 @@ export const AgentPolicySelectionStep = ({
       if (policy) {
         refreshAgentPolicies();
       }
-      if (setSelectedPolicyId && key) {
-        setSelectedPolicyId(key);
+      if (setSelectedPolicy && key) {
+        const agentPolicy = findPolicyById(agentPolicies, key);
+        setSelectedPolicy(agentPolicy);
         setPolicyId(key);
       }
     },
-    [setSelectedPolicyId, refreshAgentPolicies]
+    [setSelectedPolicy, refreshAgentPolicies, agentPolicies]
   );
   return {
     title: i18n.translate('xpack.fleet.agentEnrollment.stepChooseAgentPolicyTitle', {

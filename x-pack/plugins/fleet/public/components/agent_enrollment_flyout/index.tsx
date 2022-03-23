@@ -61,7 +61,7 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
   const fleetServerHosts = settings.data?.item?.fleet_server_hosts || [];
 
   const fleetStatus = useFleetStatus();
-  const [selectedPolicyId, setSelectedPolicyId] = useState(agentPolicy?.id);
+  const [selectedPolicy, setSelectedPolicy] = useState(agentPolicy);
 
   const [isFleetServerPolicySelected, setIsFleetServerPolicySelected] = useState<boolean>(false);
 
@@ -74,8 +74,8 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
 
   useEffect(() => {
     async function checkPolicyIsFleetServer() {
-      if (selectedPolicyId && setIsFleetServerPolicySelected) {
-        const agentPolicyRequest = await sendGetOneAgentPolicy(selectedPolicyId);
+      if (selectedPolicy && setIsFleetServerPolicySelected) {
+        const agentPolicyRequest = await sendGetOneAgentPolicy(selectedPolicy?.id);
         if (
           agentPolicyRequest.data?.item &&
           (agentPolicyRequest.data.item.package_policies as PackagePolicy[]).some(
@@ -90,7 +90,7 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
     }
 
     checkPolicyIsFleetServer();
-  }, [selectedPolicyId]);
+  }, [selectedPolicy]);
 
   const isLoadingInitialRequest = settings.isLoading && settings.isInitialRequest;
 
@@ -128,8 +128,8 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
         ) : mode === 'managed' ? (
           <ManagedInstructions
             settings={settings.data?.item}
-            selectedPolicyId={selectedPolicyId}
-            setSelectedPolicyId={setSelectedPolicyId}
+            selectedPolicy={selectedPolicy}
+            setSelectedPolicy={setSelectedPolicy}
             agentPolicy={agentPolicy}
             agentPolicies={agentPolicies}
             viewDataStep={viewDataStep}
@@ -143,8 +143,8 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
         ) : (
           <StandaloneInstructions
             agentPolicy={agentPolicy}
-            selectedPolicyId={selectedPolicyId}
-            setSelectedPolicyId={setSelectedPolicyId}
+            selectedPolicy={selectedPolicy}
+            setSelectedPolicy={setSelectedPolicy}
             agentPolicies={agentPolicies}
             refreshAgentPolicies={refreshAgentPolicies}
             mode={mode}

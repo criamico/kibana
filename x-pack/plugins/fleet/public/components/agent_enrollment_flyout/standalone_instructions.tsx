@@ -24,14 +24,15 @@ import {
   InstallationModeSelectionStep,
   AgentEnrollmentConfirmationStep,
   InstallStandaloneAgentStep,
+  IncomingDataConfirmationStep,
 } from './steps';
 import type { InstructionProps } from './types';
 
 export const StandaloneInstructions = React.memo<InstructionProps>(
   ({
     agentPolicy,
-    selectedPolicyId,
-    setSelectedPolicyId,
+    selectedPolicy,
+    setSelectedPolicy,
     agentPolicies,
     refreshAgentPolicies,
     mode,
@@ -110,19 +111,24 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
       !agentPolicy
         ? AgentPolicySelectionStep({
             agentPolicies,
-            selectedPolicyId,
-            setSelectedPolicyId,
+            selectedPolicy,
+            setSelectedPolicy,
             excludeFleetServer: true,
             refreshAgentPolicies,
           })
         : undefined,
       InstallationModeSelectionStep({ mode, setMode }),
-      InstallStandaloneAgentStep({ installCommand, isK8s, selectedPolicyId }),
+      InstallStandaloneAgentStep({ installCommand, isK8s, selectedPolicyId: selectedPolicy?.id }),
       AgentEnrollmentConfirmationStep({
-        selectedPolicyId,
+        selectedPolicyId: selectedPolicy?.id,
         troubleshootLink: link,
         onClickViewAgents,
       }),
+      selectedPolicy
+        ? IncomingDataConfirmationStep({
+            agentsIds: [selectedPolicy.id],
+          })
+        : undefined,
     ].filter(Boolean) as EuiContainedStepProps[];
 
     return (
