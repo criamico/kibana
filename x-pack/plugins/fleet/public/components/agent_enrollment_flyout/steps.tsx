@@ -25,8 +25,7 @@ import semverMinor from 'semver/functions/minor';
 import semverPatch from 'semver/functions/patch';
 
 import type { AgentPolicy } from '../../types';
-import { useKibanaVersion, useStartServices } from '../../hooks';
-import { agentPolicyRouteService } from '../../services';
+import { useKibanaVersion } from '../../hooks';
 import type { GetOneEnrollmentAPIKeyResponse } from '../../../common/types/rest_spec/enrollment_api_key';
 
 import { ManualInstructions } from '../enrollment_instructions';
@@ -286,32 +285,17 @@ export const InstallManagedAgentStep = ({
   };
 };
 
-export const InstallStandaloneAgentStep = ({
-  installCommand,
+export const ConfigureStandaloneAgentStep = ({
   isK8s,
   selectedPolicyId,
   yaml,
+  downloadLink,
 }: {
-  installCommand: CommandsByPlatform;
   isK8s: string;
   selectedPolicyId?: string;
   yaml: string;
+  downloadLink: string;
 }) => {
-  const core = useStartServices();
-  const link1 = '';
-  let downloadLink = '';
-
-  if (selectedPolicyId) {
-    downloadLink =
-      isK8s === 'IS_KUBERNETES'
-        ? core.http.basePath.prepend(
-            `${agentPolicyRouteService.getInfoFullDownloadPath(selectedPolicyId)}?kubernetes=true`
-          )
-        : core.http.basePath.prepend(
-            `${agentPolicyRouteService.getInfoFullDownloadPath(selectedPolicyId)}?standalone=true`
-          );
-  }
-
   const policyMsg =
     isK8s === 'IS_KUBERNETES' ? (
       <FormattedMessage
@@ -348,8 +332,8 @@ export const InstallStandaloneAgentStep = ({
       />
     );
   return {
-    title: i18n.translate('xpack.fleet.agentEnrollment.stepEnrollAndRunAgentTitle', {
-      defaultMessage: 'Install Elastic Agent on your host',
+    title: i18n.translate('xpack.fleet.agentEnrollment.stepConfigureAgentTitle', {
+      defaultMessage: 'Configure the agent',
     }),
     children: (
       <>
@@ -380,6 +364,30 @@ export const InstallStandaloneAgentStep = ({
             {yaml}
           </EuiCodeBlock>
         </EuiText>
+      </>
+    ),
+  };
+};
+
+export const InstallStandaloneAgentStep = ({
+  installCommand,
+  isK8s,
+  selectedPolicyId,
+  downloadLink,
+}: {
+  installCommand: CommandsByPlatform;
+  isK8s: string;
+  downloadLink: string;
+  selectedPolicyId?: string;
+}) => {
+  const link1 = '';
+
+  return {
+    title: i18n.translate('xpack.fleet.agentEnrollment.stepEnrollAndRunAgentTitle', {
+      defaultMessage: 'Install Elastic Agent on your host',
+    }),
+    children: (
+      <>
         <EuiText>
           <FormattedMessage
             id="xpack.fleet.enrollmentInstructions.troubleshootingText"
