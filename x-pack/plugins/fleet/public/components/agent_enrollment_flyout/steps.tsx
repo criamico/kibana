@@ -22,6 +22,8 @@ import { ManualInstructions } from '../enrollment_instructions';
 import type { CommandsByPlatform } from '../../applications/fleet/sections/agents/agent_requirements_page/components/install_command_utils';
 import { PlatformSelector } from '../enrollment_instructions/manual/platform_selector';
 
+import type { InstalledIntegrationPolicy } from '../../hooks';
+
 import type { FlyoutMode } from './types';
 
 import { AdvancedAgentAuthenticationSettings } from './advanced_agent_authentication_settings';
@@ -86,6 +88,7 @@ export const DownloadStep = (hasFleetServer: boolean) => {
 
 export const AgentPolicySelectionStep = ({
   agentPolicies,
+  selectedPolicyId,
   setSelectedPolicyId,
   selectedApiKeyId,
   setSelectedAPIKeyId,
@@ -93,6 +96,7 @@ export const AgentPolicySelectionStep = ({
   refreshAgentPolicies,
 }: {
   agentPolicies: AgentPolicy[];
+  selectedPolicyId?: string;
   setSelectedPolicyId?: (policyId?: string) => void;
   selectedApiKeyId?: string;
   setSelectedAPIKeyId?: (key?: string) => void;
@@ -100,8 +104,7 @@ export const AgentPolicySelectionStep = ({
   refreshAgentPolicies: () => void;
 }) => {
   // storing the created agent policy id as the child component is being recreated
-  const [policyId, setPolicyId] = useState<string | undefined>(undefined);
-  // const findPolicyById = (policies: AgentPolicy[], id: string) => policies.find((p) => p.id === id);
+  const [policyId, setPolicyId] = useState<string | undefined>(selectedPolicyId);
 
   const regularAgentPolicies = useMemo(() => {
     return agentPolicies.filter(
@@ -109,18 +112,16 @@ export const AgentPolicySelectionStep = ({
         policy && !policy.is_managed && (!excludeFleetServer || !policy.is_default_fleet_server)
     );
   }, [agentPolicies, excludeFleetServer]);
+
   const onAgentPolicyChange = useCallback(
     async (key?: string, policy?: AgentPolicy) => {
       if (policy) {
         refreshAgentPolicies();
       }
-      if (setSelectedPolicyId) {
-        // const selectedPolicy = findPolicyById(agentPolicies, key);
-        // setSelectedPolicy(selectedPolicy);
-        // console.log('2', key, selectedPolicy);
+      if (setSelectedPolicyId && key) {
+        setSelectedPolicyId(key);
+        setPolicyId(key);
       }
-      setSelectedPolicyId(key);
-      setPolicyId(key);
     },
     [setSelectedPolicyId, refreshAgentPolicies]
   );
@@ -275,24 +276,24 @@ export const InstallManagedAgentStep = ({
 export const InstallStandaloneAgentStep = ({
   installCommand,
   isK8s,
-  agentPolicyId,
+  selectedPolicyId,
 }: {
   installCommand: CommandsByPlatform;
   isK8s: string;
-  agentPolicyId: string;
+  selectedPolicyId?: string;
 }) => {
   const core = useStartServices();
   const link1 = '';
   let downloadLink = '';
 
-  if (agentPolicyId) {
+  if (selectedPolicyId) {
     downloadLink =
       isK8s === 'IS_KUBERNETES'
         ? core.http.basePath.prepend(
-            `${agentPolicyRouteService.getInfoFullDownloadPath(agentPolicyId)}?kubernetes=true`
+            `${agentPolicyRouteService.getInfoFullDownloadPath(selectedPolicyId)}?kubernetes=true`
           )
         : core.http.basePath.prepend(
-            `${agentPolicyRouteService.getInfoFullDownloadPath(agentPolicyId)}?standalone=true`
+            `${agentPolicyRouteService.getInfoFullDownloadPath(selectedPolicyId)}?standalone=true`
           );
   }
   return {
@@ -339,11 +340,11 @@ export const InstallStandaloneAgentStep = ({
 };
 
 export const AgentEnrollmentConfirmationStep = ({
-  policyId,
+  selectedPolicyId,
   onClickViewAgents,
   troubleshootLink,
 }: {
-  policyId?: string;
+  selectedPolicyId?: string;
   onClickViewAgents: () => void;
   troubleshootLink: string;
 }) => {
@@ -353,7 +354,7 @@ export const AgentEnrollmentConfirmationStep = ({
     }),
     children: (
       <ConfirmAgentEnrollment
-        policyId={policyId}
+        policyId={selectedPolicyId}
         onClickViewAgents={onClickViewAgents}
         troubleshootLink={troubleshootLink}
       />
@@ -361,11 +362,17 @@ export const AgentEnrollmentConfirmationStep = ({
   };
 };
 
-export const IncomingDataConfirmationStep = ({ agentsIds }: { agentsIds: string[] }) => {
+export const IncomingDataConfirmationStep = ({
+  agentsIds,
+  installedPolicy,
+}: {
+  agentsIds: string[];
+  installedPolicy?: InstalledIntegrationPolicy;
+}) => {
   return {
     title: i18n.translate('xpack.fleet.agentEnrollment.stepConfirmIncomingData', {
       defaultMessage: 'Confirm incoming data',
     }),
-    children: <ConfirmIncomingData agentsIds={agentsIds} />,
+    children: <ConfirmIncomingData agentsIds={agentsIds} installedPolicy={installedPolicy} />,
   };
 };

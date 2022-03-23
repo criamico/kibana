@@ -72,7 +72,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
   ({
     agentPolicy,
     agentPolicies,
-    policyId,
+    selectedPolicyId,
     setSelectedPolicyId,
     isFleetServerPolicySelected,
     settings,
@@ -128,11 +128,10 @@ export const ManagedInstructions = React.memo<InstructionProps>(
 
     const steps = useMemo(() => {
       const fleetServerHosts = settings?.fleet_server_hosts || [];
-      console.log('MANAGED agentPolicy', agentPolicy);
-      console.log('MANAGED policyId,', policyId);
       const baseSteps: EuiContainedStepProps[] = [
         !agentPolicy
           ? AgentPolicySelectionStep({
+              selectedPolicyId,
               agentPolicies,
               selectedApiKeyId,
               setSelectedAPIKeyId,
@@ -140,7 +139,6 @@ export const ManagedInstructions = React.memo<InstructionProps>(
               refreshAgentPolicies,
             })
           : AgentEnrollmentKeySelectionStep({ agentPolicy, selectedApiKeyId, setSelectedAPIKeyId }),
-
         InstallationModeSelectionStep({ mode, setMode }),
       ];
 
@@ -157,15 +155,15 @@ export const ManagedInstructions = React.memo<InstructionProps>(
       }
       baseSteps.push(
         AgentEnrollmentConfirmationStep({
-          policyId,
+          selectedPolicyId,
           onClickViewAgents,
           troubleshootLink: link,
         })
       );
-      if (policyId) {
+      if (selectedPolicyId) {
         baseSteps.push(
           IncomingDataConfirmationStep({
-            agentsIds: [policyId],
+            agentsIds: [selectedPolicyId],
           })
         );
       }
@@ -174,7 +172,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     }, [
       agentPolicy,
       selectedApiKeyId,
-      policyId,
+      selectedPolicyId,
       setSelectedPolicyId,
       setSelectedAPIKeyId,
       agentPolicies,

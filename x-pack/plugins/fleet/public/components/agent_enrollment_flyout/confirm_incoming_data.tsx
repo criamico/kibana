@@ -27,7 +27,7 @@ export const ConfirmIncomingData: React.FunctionComponent<Props> = ({
 
   return (
     <>
-      {isLoading ? (
+      {isLoading || !numAgentsWithData ? (
         <EuiText size="s">
           {i18n.translate('xpack.fleet.confirmIncomingData.loading', {
             defaultMessage:
