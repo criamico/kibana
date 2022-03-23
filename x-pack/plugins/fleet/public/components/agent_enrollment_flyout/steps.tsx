@@ -419,12 +419,14 @@ export const InstallStandaloneAgentStep = ({
 
 export const AgentEnrollmentConfirmationStep = ({
   selectedPolicyId,
-  onClickViewAgents,
   troubleshootLink,
+  onClickViewAgents,
+  agentCount,
 }: {
   selectedPolicyId?: string;
-  onClickViewAgents: () => void;
   troubleshootLink: string;
+  onClickViewAgents: () => void;
+  agentCount: number;
 }) => {
   return {
     title: i18n.translate('xpack.fleet.agentEnrollment.stepAgentEnrollmentConfirmation', {
@@ -433,8 +435,9 @@ export const AgentEnrollmentConfirmationStep = ({
     children: (
       <ConfirmAgentEnrollment
         policyId={selectedPolicyId}
-        onClickViewAgents={onClickViewAgents}
         troubleshootLink={troubleshootLink}
+        onClickViewAgents={onClickViewAgents}
+        agentCount={agentCount}
       />
     ),
   };

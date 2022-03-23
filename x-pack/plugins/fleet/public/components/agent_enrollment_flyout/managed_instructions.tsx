@@ -40,6 +40,7 @@ import {
   IncomingDataConfirmationStep,
 } from './steps';
 import type { InstructionProps } from './types';
+import { usePollingAgentCount } from './confirm_agent_enrollment';
 
 const DefaultMissingRequirements = () => {
   const { getHref } = useLink();
@@ -88,6 +89,7 @@ export const ManagedInstructions = React.memo<InstructionProps>(
 
     const apiKey = useGetOneEnrollmentAPIKey(selectedApiKeyId);
     const fleetServerInstructions = useFleetServerInstructions(apiKey?.data?.item?.policy_id);
+    const enrolledAgentIds = usePollingAgentCount(selectedPolicy?.id);
 
     const { data: agents, isLoading: isLoadingAgents } = useGetAgents({
       page: 1,
@@ -161,12 +163,13 @@ export const ManagedInstructions = React.memo<InstructionProps>(
           selectedPolicyId: selectedPolicy?.id,
           onClickViewAgents,
           troubleshootLink: link,
+          agentCount: enrolledAgentIds.length,
         })
       );
       if (selectedPolicy) {
         baseSteps.push(
           IncomingDataConfirmationStep({
-            agentsIds: [selectedPolicy.id],
+            agentsIds: enrolledAgentIds,
           })
         );
       }
@@ -174,18 +177,18 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     }, [
       selectedApiKeyId,
       setSelectedPolicyId,
+      settings?.fleet_server_hosts,
       selectedPolicy,
-      setSelectedAPIKeyId,
       agentPolicies,
       refreshAgentPolicies,
-      apiKey.data,
-      fleetServerSteps,
-      isFleetServerPolicySelected,
-      settings?.fleet_server_hosts,
       mode,
       setMode,
-      link,
+      isFleetServerPolicySelected,
       onClickViewAgents,
+      link,
+      fleetServerSteps,
+      apiKey?.data,
+      enrolledAgentIds,
     ]);
 
     if (fleetStatus.isReady && settings?.fleet_server_hosts.length === 0) {

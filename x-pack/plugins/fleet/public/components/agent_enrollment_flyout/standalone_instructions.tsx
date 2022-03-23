@@ -210,6 +210,7 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
         selectedPolicyId: agentPolicy?.id,
         troubleshootLink: link,
         onClickViewAgents,
+        agentCount: 0,
       }),
       agentPolicy
         ? IncomingDataConfirmationStep({
