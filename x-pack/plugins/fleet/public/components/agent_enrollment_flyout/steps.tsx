@@ -6,7 +6,18 @@
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { EuiText, EuiButton, EuiSpacer, EuiRadioGroup, EuiLink } from '@elastic/eui';
+import {
+  EuiText,
+  EuiButton,
+  EuiSpacer,
+  EuiRadioGroup,
+  EuiLink,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiCodeBlock,
+  EuiCopy,
+  EuiCode,
+} from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
 import { i18n } from '@kbn/i18n';
 import semverMajor from 'semver/functions/major';
@@ -279,10 +290,12 @@ export const InstallStandaloneAgentStep = ({
   installCommand,
   isK8s,
   selectedPolicyId,
+  yaml,
 }: {
   installCommand: CommandsByPlatform;
   isK8s: string;
   selectedPolicyId?: string;
+  yaml: string;
 }) => {
   const core = useStartServices();
   const link1 = '';
@@ -298,12 +311,75 @@ export const InstallStandaloneAgentStep = ({
             `${agentPolicyRouteService.getInfoFullDownloadPath(selectedPolicyId)}?standalone=true`
           );
   }
+
+  const policyMsg =
+    isK8s === 'IS_KUBERNETES' ? (
+      <FormattedMessage
+        id="xpack.fleet.agentEnrollment.stepConfigureAgentDescriptionk8s"
+        defaultMessage="Copy or download the Kubernetes manifest inside the Kubernetes cluster. Modify {ESUsernameVariable} and {ESPasswordVariable} in the Daemonset environment variables and apply the manifest."
+        values={{
+          ESUsernameVariable: <EuiCode>ES_USERNAME</EuiCode>,
+          ESPasswordVariable: <EuiCode>ES_PASSWORD</EuiCode>,
+        }}
+      />
+    ) : (
+      <FormattedMessage
+        id="xpack.fleet.agentEnrollment.stepConfigureAgentDescription"
+        defaultMessage="Copy this policy to the {fileName} on the host where the Elastic Agent is installed. Modify {ESUsernameVariable} and {ESPasswordVariable} in the {outputSection} section of {fileName} to use your Elasticsearch credentials."
+        values={{
+          fileName: <EuiCode>elastic-agent.yml</EuiCode>,
+          ESUsernameVariable: <EuiCode>ES_USERNAME</EuiCode>,
+          ESPasswordVariable: <EuiCode>ES_PASSWORD</EuiCode>,
+          outputSection: <EuiCode>outputs</EuiCode>,
+        }}
+      />
+    );
+
+  const downloadMsg =
+    isK8s === 'IS_KUBERNETES' ? (
+      <FormattedMessage
+        id="xpack.fleet.agentEnrollment.downloadPolicyButtonk8s"
+        defaultMessage="Download Manifest"
+      />
+    ) : (
+      <FormattedMessage
+        id="xpack.fleet.agentEnrollment.downloadPolicyButton"
+        defaultMessage="Download Policy"
+      />
+    );
   return {
     title: i18n.translate('xpack.fleet.agentEnrollment.stepEnrollAndRunAgentTitle', {
       defaultMessage: 'Install Elastic Agent on your host',
     }),
     children: (
       <>
+        <EuiText>
+          <>{policyMsg}</>
+          <EuiSpacer size="m" />
+          <EuiFlexGroup gutterSize="m">
+            <EuiFlexItem grow={false}>
+              <EuiCopy textToCopy={yaml}>
+                {(copy) => (
+                  <EuiButton onClick={copy} iconType="copyClipboard">
+                    <FormattedMessage
+                      id="xpack.fleet.agentEnrollment.copyPolicyButton"
+                      defaultMessage="Copy to clipboard"
+                    />
+                  </EuiButton>
+                )}
+              </EuiCopy>
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <EuiButton iconType="download" href={downloadLink} isDisabled={!downloadLink}>
+                <>{downloadMsg}</>
+              </EuiButton>
+            </EuiFlexItem>
+          </EuiFlexGroup>
+          <EuiSpacer size="m" />
+          <EuiCodeBlock language="yaml" style={{ maxHeight: 300 }} fontSize="m">
+            {yaml}
+          </EuiCodeBlock>
+        </EuiText>
         <EuiText>
           <FormattedMessage
             id="xpack.fleet.enrollmentInstructions.troubleshootingText"

@@ -203,7 +203,6 @@ export const FleetServerCommandStep = ({
           windowsCommand={installCommand.windows}
           linuxDebCommand={installCommand.deb}
           linuxRpmCommand={installCommand.rpm}
-          troubleshootLink={docLinks.links.fleet.troubleshooting}
           isK8s={false}
         />
       </>

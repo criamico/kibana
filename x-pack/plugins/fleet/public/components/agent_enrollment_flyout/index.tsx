@@ -142,7 +142,6 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
           />
         ) : (
           <StandaloneInstructions
-            agentPolicy={agentPolicy}
             selectedPolicy={selectedPolicy}
             setSelectedPolicy={setSelectedPolicy}
             agentPolicies={agentPolicies}

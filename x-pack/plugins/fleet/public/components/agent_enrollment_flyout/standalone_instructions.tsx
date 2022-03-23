@@ -11,13 +11,22 @@ import type { EuiContainedStepProps } from '@elastic/eui/src/components/steps/st
 
 import { FormattedMessage } from '@kbn/i18n-react';
 
+import { safeDump } from 'js-yaml';
+
 import type { CommandsByPlatform } from '../../applications/fleet/sections/agents/agent_requirements_page/components/install_command_utils';
 
-import { useStartServices, sendGetOneAgentPolicy, useKibanaVersion } from '../../hooks';
+import {
+  useStartServices,
+  sendGetOneAgentPolicy,
+  useKibanaVersion,
+  sendGetOneAgentPolicyFull,
+} from '../../hooks';
 
 import type { PackagePolicy } from '../../../common';
 
 import { FLEET_KUBERNETES_PACKAGE } from '../../../common';
+
+import { fullAgentPolicyToYaml } from '../../services';
 
 import {
   AgentPolicySelectionStep,
@@ -30,7 +39,6 @@ import type { InstructionProps } from './types';
 
 export const StandaloneInstructions = React.memo<InstructionProps>(
   ({
-    agentPolicy,
     selectedPolicy,
     setSelectedPolicy,
     agentPolicies,
@@ -45,6 +53,8 @@ export const StandaloneInstructions = React.memo<InstructionProps>(
     const [isK8s, setIsK8s] = useState<'IS_LOADING' | 'IS_KUBERNETES' | 'IS_NOT_KUBERNETES'>(
       'IS_LOADING'
     );
+    const [fullAgentPolicy, setFullAgentPolicy] = useState<any | undefined>();
+    const [yaml, setYaml] = useState<string | string>('');
     const kibanaVersion = useKibanaVersion();
 
     const KUBERNETES_RUN_INSTRUCTIONS = 'kubectl apply -f elastic-agent-standalone-kubernetes.yaml';
@@ -87,10 +97,10 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
 
     useEffect(() => {
       async function checkifK8s() {
-        if (!agentPolicy?.id) {
+        if (!selectedPolicy?.id) {
           return;
         }
-        const agentPolicyRequest = await sendGetOneAgentPolicy(agentPolicy?.id);
+        const agentPolicyRequest = await sendGetOneAgentPolicy(selectedPolicy?.id);
         const agentPol = agentPolicyRequest.data ? agentPolicyRequest.data.item : null;
 
         if (!agentPol) {
@@ -105,10 +115,54 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
         );
       }
       checkifK8s();
-    }, [agentPolicy, notifications.toasts]);
+    }, [selectedPolicy, notifications.toasts]);
+
+    useEffect(() => {
+      async function fetchFullPolicy() {
+        try {
+          if (!selectedPolicy?.id) {
+            return;
+          }
+          let query = { standalone: true, kubernetes: false };
+          if (isK8s === 'IS_KUBERNETES') {
+            query = { standalone: true, kubernetes: true };
+          }
+          const res = await sendGetOneAgentPolicyFull(selectedPolicy?.id, query);
+          if (res.error) {
+            throw res.error;
+          }
+
+          if (!res.data) {
+            throw new Error('No data while fetching full agent policy');
+          }
+          setFullAgentPolicy(res.data.item);
+        } catch (error) {
+          notifications.toasts.addError(error, {
+            title: 'Error',
+          });
+        }
+      }
+      if (isK8s !== 'IS_LOADING') {
+        fetchFullPolicy();
+      }
+    }, [selectedPolicy, notifications.toasts, isK8s, core.http.basePath]);
+
+    useEffect(() => {
+      if (isK8s === 'IS_KUBERNETES') {
+        if (typeof fullAgentPolicy === 'object') {
+          return;
+        }
+        setYaml(fullAgentPolicy);
+      } else {
+        if (typeof fullAgentPolicy === 'string') {
+          return;
+        }
+        setYaml(fullAgentPolicyToYaml(fullAgentPolicy, safeDump));
+      }
+    }, [fullAgentPolicy, isK8s]);
 
     const steps = [
-      !agentPolicy
+      !selectedPolicy
         ? AgentPolicySelectionStep({
             agentPolicies,
             selectedPolicy,
@@ -118,7 +172,12 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
           })
         : undefined,
       InstallationModeSelectionStep({ mode, setMode }),
-      InstallStandaloneAgentStep({ installCommand, isK8s, selectedPolicyId: selectedPolicy?.id }),
+      InstallStandaloneAgentStep({
+        installCommand,
+        isK8s,
+        selectedPolicyId: selectedPolicy?.id,
+        yaml,
+      }),
       AgentEnrollmentConfirmationStep({
         selectedPolicyId: selectedPolicy?.id,
         troubleshootLink: link,
