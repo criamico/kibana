@@ -99,24 +99,20 @@ export const DownloadStep = (hasFleetServer: boolean) => {
 export const AgentPolicySelectionStep = ({
   agentPolicies,
   selectedPolicy,
-  setSelectedPolicy,
+  setSelectedPolicyId,
   selectedApiKeyId,
   setSelectedAPIKeyId,
   excludeFleetServer,
   refreshAgentPolicies,
 }: {
   agentPolicies: AgentPolicy[];
-  selectedPolicy?: AgentPolicy;
-  setSelectedPolicy?: (agentPolicy?: AgentPolicy) => void;
+  selectedPolicy: AgentPolicy;
+  setSelectedPolicyId: (agentPolicyId?: string) => void;
   selectedApiKeyId?: string;
   setSelectedAPIKeyId?: (key?: string) => void;
   excludeFleetServer?: boolean;
   refreshAgentPolicies: () => void;
 }) => {
-  // storing the created agent policy id as the child component is being recreated
-  const [policyId, setPolicyId] = useState<string | undefined>(selectedPolicy?.id);
-  const findPolicyById = (policies: AgentPolicy[], id: string) => policies.find((p) => p.id === id);
-
   const regularAgentPolicies = useMemo(() => {
     return agentPolicies.filter(
       (policy) =>
@@ -129,13 +125,8 @@ export const AgentPolicySelectionStep = ({
       if (policy) {
         refreshAgentPolicies();
       }
-      if (setSelectedPolicy && key) {
-        const agentPolicy = findPolicyById(agentPolicies, key);
-        setSelectedPolicy(agentPolicy);
-        setPolicyId(key);
-      }
     },
-    [setSelectedPolicy, refreshAgentPolicies, agentPolicies]
+    [refreshAgentPolicies]
   );
   return {
     title: i18n.translate('xpack.fleet.agentEnrollment.stepChooseAgentPolicyTitle', {
@@ -145,12 +136,13 @@ export const AgentPolicySelectionStep = ({
       <>
         <SelectCreateAgentPolicy
           agentPolicies={regularAgentPolicies}
+          selectedPolicy={selectedPolicy}
+          setSelectedPolicyId={setSelectedPolicyId}
           withKeySelection={setSelectedAPIKeyId ? true : false}
           selectedApiKeyId={selectedApiKeyId}
           onKeyChange={setSelectedAPIKeyId}
           onAgentPolicyChange={onAgentPolicyChange}
           excludeFleetServer={excludeFleetServer}
-          policyId={policyId}
         />
       </>
     ),
@@ -158,11 +150,11 @@ export const AgentPolicySelectionStep = ({
 };
 
 export const AgentEnrollmentKeySelectionStep = ({
-  agentPolicy,
+  selectedPolicy,
   selectedApiKeyId,
   setSelectedAPIKeyId,
 }: {
-  agentPolicy: AgentPolicy;
+  selectedPolicy: AgentPolicy;
   selectedApiKeyId?: string;
   setSelectedAPIKeyId: (key?: string) => void;
 }) => {
@@ -177,13 +169,13 @@ export const AgentEnrollmentKeySelectionStep = ({
             id="xpack.fleet.agentEnrollment.agentAuthenticationSettings"
             defaultMessage="{agentPolicyName} has been selected. Select which enrollment token to use when enrolling agents."
             values={{
-              agentPolicyName: <strong>{agentPolicy.name}</strong>,
+              agentPolicyName: <strong>{selectedPolicy.name}</strong>,
             }}
           />
         </EuiText>
         <EuiSpacer size="l" />
         <AdvancedAgentAuthenticationSettings
-          agentPolicyId={agentPolicy.id}
+          agentPolicyId={selectedPolicy.id}
           selectedApiKeyId={selectedApiKeyId}
           initialAuthenticationSettingsOpen
           onKeyChange={setSelectedAPIKeyId}

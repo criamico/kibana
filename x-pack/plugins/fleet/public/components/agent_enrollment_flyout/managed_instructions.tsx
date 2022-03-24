@@ -70,10 +70,9 @@ const FleetServerMissingRequirements = () => {
 
 export const ManagedInstructions = React.memo<InstructionProps>(
   ({
-    agentPolicy,
     agentPolicies,
     selectedPolicy,
-    setSelectedPolicy,
+    setSelectedPolicyId,
     isFleetServerPolicySelected,
     settings,
     refreshAgentPolicies,
@@ -129,16 +128,20 @@ export const ManagedInstructions = React.memo<InstructionProps>(
     const steps = useMemo(() => {
       const fleetServerHosts = settings?.fleet_server_hosts || [];
       const baseSteps: EuiContainedStepProps[] = [
-        !agentPolicy
+        !selectedPolicy
           ? AgentPolicySelectionStep({
               selectedPolicy,
               agentPolicies,
               selectedApiKeyId,
               setSelectedAPIKeyId,
-              setSelectedPolicy,
+              setSelectedPolicyId,
               refreshAgentPolicies,
             })
-          : AgentEnrollmentKeySelectionStep({ agentPolicy, selectedApiKeyId, setSelectedAPIKeyId }),
+          : AgentEnrollmentKeySelectionStep({
+              selectedPolicy,
+              selectedApiKeyId,
+              setSelectedAPIKeyId,
+            }),
         InstallationModeSelectionStep({ mode, setMode }),
       ];
 
@@ -164,16 +167,13 @@ export const ManagedInstructions = React.memo<InstructionProps>(
         baseSteps.push(
           IncomingDataConfirmationStep({
             agentsIds: [selectedPolicy.id],
-            // installedPolicy: { name: selectedPolicy.name, version: selectedPolicy.version },
           })
         );
       }
-
       return baseSteps;
     }, [
-      agentPolicy,
       selectedApiKeyId,
-      setSelectedPolicy,
+      setSelectedPolicyId,
       selectedPolicy,
       setSelectedAPIKeyId,
       agentPolicies,

@@ -16,28 +16,30 @@ import { AgentPolicyCreateInlineForm } from '../../applications/fleet/sections/a
 import type { AgentPolicy } from '../../types';
 import { incrementPolicyName } from '../../services';
 
-import { EnrollmentStepAgentPolicy } from '.';
+import { AgentPolicySelection } from '.';
 
 interface Props {
   agentPolicies: AgentPolicy[];
+  selectedPolicy: AgentPolicy;
+  setSelectedPolicyId: (agentPolicyId?: string) => void;
   excludeFleetServer?: boolean;
   onAgentPolicyChange: (key?: string, policy?: AgentPolicy) => void;
   withKeySelection: boolean;
   selectedApiKeyId?: string;
   onKeyChange?: (key?: string) => void;
   isFleetServerPolicy?: boolean;
-  policyId?: string;
 }
 
 export const SelectCreateAgentPolicy: React.FC<Props> = ({
   agentPolicies,
   excludeFleetServer,
+  setSelectedPolicyId,
+  selectedPolicy,
   onAgentPolicyChange,
   withKeySelection,
   selectedApiKeyId,
   onKeyChange,
   isFleetServerPolicy,
-  policyId,
 }) => {
   const [showCreatePolicy, setShowCreatePolicy] = useState(agentPolicies.length === 0);
 
@@ -46,8 +48,6 @@ export const SelectCreateAgentPolicy: React.FC<Props> = ({
   });
 
   const [newName, setNewName] = useState(incrementPolicyName(agentPolicies, isFleetServerPolicy));
-
-  const [selectedAgentPolicy, setSelectedAgentPolicy] = useState<string | undefined>(policyId);
 
   useEffect(() => {
     setShowCreatePolicy(agentPolicies.length === 0);
@@ -65,9 +65,9 @@ export const SelectCreateAgentPolicy: React.FC<Props> = ({
       if (onAgentPolicyChange) {
         onAgentPolicyChange(policy.id, policy!);
       }
-      setSelectedAgentPolicy(policy.id);
+      setSelectedPolicyId(policy.id);
     },
-    [onAgentPolicyChange]
+    [setSelectedPolicyId, onAgentPolicyChange]
   );
 
   const onClickCreatePolicy = () => {
@@ -87,15 +87,15 @@ export const SelectCreateAgentPolicy: React.FC<Props> = ({
           agentPolicyName={newName}
         />
       ) : (
-        <EnrollmentStepAgentPolicy
+        <AgentPolicySelection
           agentPolicies={agentPolicies}
           withKeySelection={withKeySelection}
           selectedApiKeyId={selectedApiKeyId}
           onKeyChange={onKeyChange}
-          onAgentPolicyChange={onAgentPolicyChange}
           excludeFleetServer={excludeFleetServer}
           onClickCreatePolicy={onClickCreatePolicy}
-          selectedAgentPolicy={selectedAgentPolicy}
+          selectedPolicy={selectedPolicy}
+          setSelectedPolicyId={setSelectedPolicyId}
           isFleetServerPolicy={isFleetServerPolicy}
         />
       )}

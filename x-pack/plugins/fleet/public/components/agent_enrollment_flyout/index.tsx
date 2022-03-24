@@ -27,7 +27,7 @@ import {
   useAgentEnrollmentFlyoutData,
 } from '../../hooks';
 import { FLEET_SERVER_PACKAGE } from '../../constants';
-import type { PackagePolicy } from '../../types';
+import type { PackagePolicy, AgentPolicy } from '../../types';
 
 import { Loading } from '..';
 
@@ -61,7 +61,12 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
   const fleetServerHosts = settings.data?.item?.fleet_server_hosts || [];
 
   const fleetStatus = useFleetStatus();
-  const [selectedPolicy, setSelectedPolicy] = useState(agentPolicy);
+  const findPolicyById = (policies: AgentPolicy[], id: string | undefined) => {
+    if (!id) return undefined;
+    return policies.find((p) => p.id === id);
+  };
+
+  const [selectedPolicyId, setSelectedPolicyId] = useState(agentPolicy?.id);
 
   const [isFleetServerPolicySelected, setIsFleetServerPolicySelected] = useState<boolean>(false);
 
@@ -72,10 +77,12 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
     refreshAgentPolicies,
   } = useAgentEnrollmentFlyoutData();
 
+  const selectedPolicy = findPolicyById(agentPolicies, selectedPolicyId);
+
   useEffect(() => {
     async function checkPolicyIsFleetServer() {
-      if (selectedPolicy && setIsFleetServerPolicySelected) {
-        const agentPolicyRequest = await sendGetOneAgentPolicy(selectedPolicy?.id);
+      if (selectedPolicyId && setIsFleetServerPolicySelected) {
+        const agentPolicyRequest = await sendGetOneAgentPolicy(selectedPolicyId);
         if (
           agentPolicyRequest.data?.item &&
           (agentPolicyRequest.data.item.package_policies as PackagePolicy[]).some(
@@ -90,7 +97,7 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
     }
 
     checkPolicyIsFleetServer();
-  }, [selectedPolicy]);
+  }, [selectedPolicyId]);
 
   const isLoadingInitialRequest = settings.isLoading && settings.isInitialRequest;
 
@@ -129,7 +136,7 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
           <ManagedInstructions
             settings={settings.data?.item}
             selectedPolicy={selectedPolicy}
-            setSelectedPolicy={setSelectedPolicy}
+            setSelectedPolicyId={setSelectedPolicyId}
             agentPolicy={agentPolicy}
             agentPolicies={agentPolicies}
             viewDataStep={viewDataStep}
@@ -143,7 +150,8 @@ export const AgentEnrollmentFlyout: React.FunctionComponent<Props> = ({
         ) : (
           <StandaloneInstructions
             agentPolicy={agentPolicy}
-            setSelectedPolicy={setSelectedPolicy}
+            selectedPolicy={selectedPolicy}
+            setSelectedPolicyId={setSelectedPolicyId}
             agentPolicies={agentPolicies}
             refreshAgentPolicies={refreshAgentPolicies}
             mode={mode}

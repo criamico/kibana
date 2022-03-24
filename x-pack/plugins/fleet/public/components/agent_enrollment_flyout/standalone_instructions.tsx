@@ -45,7 +45,8 @@ import type { InstructionProps } from './types';
 export const StandaloneInstructions = React.memo<InstructionProps>(
   ({
     agentPolicy,
-    setSelectedPolicy,
+    selectedPolicy,
+    setSelectedPolicyId,
     agentPolicies,
     refreshAgentPolicies,
     mode,
@@ -186,8 +187,8 @@ sudo rpm -vi elastic-agent-${kibanaVersion}-x86_64.rpm \nsudo systemctl enable e
       !agentPolicy
         ? AgentPolicySelectionStep({
             agentPolicies,
-            selectedPolicy: agentPolicy,
-            setSelectedPolicy,
+            selectedPolicy,
+            setSelectedPolicyId,
             excludeFleetServer: true,
             refreshAgentPolicies,
           })
