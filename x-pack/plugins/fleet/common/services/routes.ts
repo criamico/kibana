@@ -235,11 +235,11 @@ export const setupRouteService = {
 
 export const downloadSourceRoutesService = {
   getInfoPath: (downloadSourceId: string) =>
-    DOWNLOAD_SOURCE_API_ROUTES.INFO_PATTERN.replace('{downloadSourceId}', downloadSourceId),
+    DOWNLOAD_SOURCE_API_ROUTES.INFO_PATTERN.replace('{sourceId}', downloadSourceId),
   getUpdatePath: (downloadSourceId: string) =>
-    DOWNLOAD_SOURCE_API_ROUTES.UPDATE_PATTERN.replace('{downloadSourceId}', downloadSourceId),
+    DOWNLOAD_SOURCE_API_ROUTES.UPDATE_PATTERN.replace('{sourceId}', downloadSourceId),
   getListPath: () => DOWNLOAD_SOURCE_API_ROUTES.LIST_PATTERN,
   getDeletePath: (downloadSourceId: string) =>
-    DOWNLOAD_SOURCE_API_ROUTES.DELETE_PATTERN.replace('{downloadSourceId}', downloadSourceId),
+    DOWNLOAD_SOURCE_API_ROUTES.DELETE_PATTERN.replace('{sourceId}', downloadSourceId),
   getCreatePath: () => DOWNLOAD_SOURCE_API_ROUTES.CREATE_PATTERN,
 };
